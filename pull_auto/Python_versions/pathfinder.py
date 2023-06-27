@@ -363,19 +363,27 @@ def check_if_done():
     status_dict = {int(k):v for k,v in status_dict.items()}
     status_dict = {k: v for k, v in sorted(status_dict.items(), key=lambda item: item[0])}
 
-    for key, value in status_dict.items():
+    for index, (key, value) in enumerate(status_dict.items()):
         # if the smallest K is the best K
-        if value == 1 and list(status_dict).index(key) == 0:
+        if value == 1 and index == 0:
             print('The best force constant has been found. The force constant is ' + str(key) + '. This is the K_min. ')
             print('It is possible there exists and even smaller force constant, but Pathfinder will not check for it, because this was K_min in the config file.')
             logging.info('The best force constant has been found. The force constant is ' + str(key) + '.')
             return 1,key
         elif value == 1:
-            if key-5 in status_dict:
-                if status_dict[key-5] == 0:
-                    print('The best force constant has been found. The force constant is ' + str(key) + '.')
-                    logging.info('The best force constant has been found. The force constant is ' + str(key) + '.')
-                    return 1,key
+            #the difference between keys should be below 5
+            #checks if the key before has failed and the difference
+            key_before = list(status_dict)[index-1]
+            value_before = list(status_dict.values())[index-1]
+            difference = int(key)-int(key_before)
+            print(value_before)
+
+            if difference <= 5 and value_before == 0 :
+                
+                print('The best force constant has been found. The force constant is ' + str(key) + '.')
+                logging.info('The best force constant has been found. The force constant is ' + str(key) + '.')
+                return 1,key
+         
     return 0,0
 
 
@@ -711,9 +719,9 @@ def contpull(iter: int):
                 print("You answered yes. Continuing to simulations...")
                 logging.info('User chose to continue to simulations.')
                 global K_filtered
-                K_array = {"K_array": K_filtered.tolist()}
+                K_a = {"K_array": K_array.tolist()}
                 with open("K_array.json", "w") as f:
-                    json.dump(K_array, f, indent=4)
+                    json.dump(K_a, f, indent=4)
                 with open("status_dict.json", "w") as f:
                     json.dump(status_dict, f, indent=4)
                 run_simulation(iter, K_filtered)
